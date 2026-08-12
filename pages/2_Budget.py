@@ -1,5 +1,12 @@
+import os
+import sys
+
 import pandas as pd
 import streamlit as st
+
+# Make sure the project root is importable, regardless of the working
+# directory Streamlit was launched from.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.storage import load_data, save_data, new_id
 from utils.currency import get_rates, convert, TARGET_CURRENCIES
