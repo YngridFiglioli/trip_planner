@@ -25,7 +25,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.title("🏰 Prague")
+st.title("🏰 Prague - Bienvenidos!")
 
 # ---------- Quick info ----------
 st.markdown(
@@ -33,7 +33,10 @@ st.markdown(
     <div class="info-box">
         <div class="info-row">🗣️ <b>Language:</b> Czech</div>
         <div class="info-row">💰 <b>Currency:</b> Czech Koruna (CZK)</div>
-        <div class="info-row">📍 <b>Address (hotel/base):</b> Rodvinovská 1567/4, Prague 4 —
+        <div class="info-row">💰 <b>Currency Exchange Rate:</b> 1CZK ≈ 0.83MXN</div>
+        <div class="info-row">💰 <b>Currency Exchange Rate:</b> 1EUR ≈ 24.25CZK</div>
+        <div class="info-row">💰 <b>Currency Exchange Rate:</b> 1EUR ≈ 19.85MXN</div>
+        <div class="info-row">📍 <b>Address (base):</b> Rodvinovská 1567/4, Prague 4 —
             <a href="https://maps.app.goo.gl/3TtifCHPeJ3EnvBY9" target="_blank">open in Google Maps</a>
         </div>
     </div>
