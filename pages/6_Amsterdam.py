@@ -6,7 +6,7 @@ import streamlit as st
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.storage import load_data
-from utils.city_page import inject_css, render_info_box, render_photos, render_things_to_do
+from utils.city_page import inject_css, render_info_box, render_weather, render_photos, render_things_to_do
 
 inject_css()
 data = load_data()
@@ -18,6 +18,11 @@ render_info_box(
     language="Dutch",
     currency="Euro (EUR)",
 )
+
+# ---------- Weather ----------
+render_weather("Amsterdam", lat=52.3676, lon=4.9041)
+
+st.divider()
 
 # ---------- Intro ----------
 st.markdown(

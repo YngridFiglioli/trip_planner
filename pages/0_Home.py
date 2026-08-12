@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.storage import load_data, save_data, new_id
 from utils.currency import get_rates, convert, TARGET_CURRENCIES
+from utils.route_calendar import render_route_calendar
 
 # ---------- Mobile-friendly global styling ----------
 st.markdown(
@@ -45,24 +46,20 @@ st.title("🧳 " + (data.get("trip_name") or "My Trip"))
 # ---------- Route overview ----------
 st.subheader("🗺️ Route overview")
 
-ROUTE = [
-    ("Oct 24", "Arrival at 14:45 — train to Maastricht (2h30)"),
-    ("Oct 24–27", "Maastricht"),
-    ("Oct 27", "Maastricht Aachen airport → flight to Prague"),
-    ("Oct 27–30", "Prague"),
-    ("Oct 30", "Prague airport → flight to Amsterdam"),
-    ("Oct 30 – Nov 1", "Amsterdam"),
-    ("Nov 1", "Amsterdam airport, 14:30 flight → Mexico City (CDMX)"),
+ROUTE_SEGMENTS = [
+    {"start": dt.date(2026, 10, 24), "end": dt.date(2026, 10, 27), "label": "Maastricht", "color": "#4f7cff"},
+    {"start": dt.date(2026, 10, 27), "end": dt.date(2026, 10, 30), "label": "Prague", "color": "#ff6584"},
+    {"start": dt.date(2026, 10, 30), "end": dt.date(2026, 11, 1), "label": "Amsterdam", "color": "#ffb648"},
 ]
 
-for when, what in ROUTE:
-    st.markdown(
-        f"""<div class="trip-card">
-        <b>{when}</b><br/>
-        <span style="color:gray;">{what}</span>
-        </div>""",
-        unsafe_allow_html=True,
-    )
+render_route_calendar(ROUTE_SEGMENTS, months=[(2026, 10), (2026, 11)])
+
+st.caption(
+    "Key transfers — Oct 24: arrival 14:45, train to Maastricht (2h30). "
+    "Oct 27: Maastricht Aachen airport → flight to Prague. "
+    "Oct 30: Prague airport → flight to Amsterdam. "
+    "Nov 1: Amsterdam airport, 14:30 flight → Mexico City (CDMX)."
+)
 
 st.divider()
 

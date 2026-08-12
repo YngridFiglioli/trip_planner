@@ -11,6 +11,7 @@ import streamlit as st
 
 from utils.storage import save_data, new_id
 from utils.currency import TARGET_CURRENCIES, get_rates, convert
+from utils.weather import fetch_current_weather, WEATHER_CODES
 
 PAGE_CSS = """
 <style>
@@ -44,6 +45,27 @@ def render_info_box(language: str, currency: str, address: str = "", address_lin
         )
         rows += f'<div class="info-row">📍 <b>Address:</b> {address}{link_html}</div>'
     st.markdown(f'<div class="info-box">{rows}</div>', unsafe_allow_html=True)
+
+
+def render_weather(city_name: str, lat: float, lon: float):
+    st.subheader("🌤️ Current weather")
+    weather = fetch_current_weather(lat, lon)
+    if not weather:
+        st.caption("Weather data unavailable right now.")
+        return
+    code = weather.get("weathercode")
+    desc, icon = WEATHER_CODES.get(code, ("—", "🌡️"))
+    temp = weather.get("temperature")
+    wind = weather.get("windspeed")
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Temperature", f"{temp:.0f}°C" if temp is not None else "—")
+    c2.metric("Condition", f"{icon} {desc}")
+    c3.metric("Wind", f"{wind:.0f} km/h" if wind is not None else "—")
+    st.caption(
+        f"Live conditions in {city_name} right now — for the trip dates, check a forecast "
+        f"app closer to the day (forecasts only get reliable ~10-14 days out)."
+    )
 
 
 def render_photos(photos: list[tuple[str, str]]):
