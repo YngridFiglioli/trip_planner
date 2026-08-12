@@ -17,8 +17,10 @@ pages = [
     st.Page("pages/0_Home.py", title="Home", icon="🧳", default=True),
     st.Page("pages/1_Itinerary.py", title="Itinerary", icon="🗓️"),
     st.Page("pages/2_Budget.py", title="Budget", icon="💰"),
-    st.Page("pages/3_Destinations.py", title="Destinations", icon="🌍"),
+    st.Page("pages/5_Maastricht.py", title="Maastricht", icon="🌷"),
     st.Page("pages/4_Prague.py", title="Prague", icon="🏰"),
+    st.Page("pages/6_Amsterdam.py", title="Amsterdam", icon="🚲"),
+    st.Page("pages/3_Destinations.py", title="Other destinations", icon="🌍"),
 ]
 
 nav = st.navigation(pages, position="sidebar")

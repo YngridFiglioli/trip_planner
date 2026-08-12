@@ -5,42 +5,25 @@ import streamlit as st
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-st.markdown(
-    """
-    <style>
-        .block-container {max-width: 1000px; padding-top: 1.5rem; padding-bottom: 3rem;}
-        @media (max-width: 640px) {
-            .block-container {padding-left: .8rem; padding-right: .8rem;}
-        }
-        .info-box {
-            border: 1px solid rgba(128,128,128,0.25);
-            border-radius: 12px;
-            padding: 1rem 1.2rem;
-            margin-bottom: 1rem;
-        }
-        .info-row {margin-bottom: 0.3rem;}
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+from utils.storage import load_data
+from utils.city_page import inject_css, render_info_box, render_photos, render_things_to_do
+
+inject_css()
+data = load_data()
 
 st.title("🏰 Prague - Bienvenidos!")
 
 # ---------- Quick info ----------
-st.markdown(
-    """
-    <div class="info-box">
-        <div class="info-row">🗣️ <b>Language:</b> Czech</div>
-        <div class="info-row">💰 <b>Currency:</b> Czech Koruna (CZK)</div>
-        <div class="info-row">💰 <b>Currency Exchange Rate:</b> 1CZK ≈ 0.83MXN</div>
-        <div class="info-row">💰 <b>Currency Exchange Rate:</b> 1EUR ≈ 24.25CZK</div>
-        <div class="info-row">💰 <b>Currency Exchange Rate:</b> 1EUR ≈ 19.85MXN</div>
-        <div class="info-row">📍 <b>Address (base):</b> Rodvinovská 1567/4, Prague 4 —
-            <a href="https://maps.app.goo.gl/3TtifCHPeJ3EnvBY9" target="_blank">open in Google Maps</a>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
+render_info_box(
+    language="Czech",
+    currency="Czech Koruna (CZK)",
+    address="Rodvinovská 1567/4, Prague 4",
+    address_link="https://maps.app.goo.gl/3TtifCHPeJ3EnvBY9",
+    extra_rows=[
+        "💰 <b>Currency Exchange Rate:</b> 1 CZK ≈ 0.83 MXN",
+        "💰 <b>Currency Exchange Rate:</b> 1 EUR ≈ 24.25 CZK",
+        "💰 <b>Currency Exchange Rate:</b> 1 EUR ≈ 19.85 MXN",
+    ],
 )
 
 # ---------- Intro ----------
@@ -62,8 +45,6 @@ Today it is a member of NATO, the European Union, and the Schengen Area.
 st.divider()
 
 # ---------- Photos ----------
-st.subheader("📸 Prague in pictures")
-
 PHOTOS = [
     (
         "https://commons.wikimedia.org/wiki/Special:FilePath/Charles_Bridge_Prague.jpg",
@@ -82,16 +63,12 @@ PHOTOS = [
         "City panorama from Petřín hill",
     ),
 ]
+render_photos(PHOTOS)
 
-cols = st.columns(2)
-for i, (url, caption) in enumerate(PHOTOS):
-    with cols[i % 2]:
-        try:
-            st.image(url, caption=caption, use_container_width=True)
-        except Exception:
-            st.caption(f"(Couldn't load image: {caption})")
+st.divider()
 
-st.caption("Photos: Wikimedia Commons, freely licensed.")
+# ---------- Things to do (editable, persisted) ----------
+render_things_to_do(data, city_key="Prague")
 
 st.divider()
 

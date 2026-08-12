@@ -9,7 +9,7 @@ import streamlit as st
 # in app.py — this file is only ever run through st.navigation.)
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.storage import load_data, save_data
+from utils.storage import load_data, save_data, new_id
 from utils.currency import get_rates, convert, TARGET_CURRENCIES
 
 # ---------- Mobile-friendly global styling ----------
@@ -40,6 +40,8 @@ st.markdown(
 
 data = load_data()
 
+st.title("🧳 " + (data.get("trip_name") or "My Trip"))
+
 # ---------- Route overview ----------
 st.subheader("🗺️ Route overview")
 
@@ -61,6 +63,43 @@ for when, what in ROUTE:
         </div>""",
         unsafe_allow_html=True,
     )
+
+st.divider()
+
+# ---------- To-do list ----------
+st.subheader("✅ To-do list")
+st.caption("Trip prep tasks — book this, buy that, don't forget the other thing.")
+
+todos = data.setdefault("todos", [])
+
+for todo in todos:
+    c1, c2 = st.columns([10, 1])
+    with c1:
+        checked = st.checkbox(
+            todo["text"],
+            value=todo.get("done", False),
+            key=f"todo_{todo['id']}",
+        )
+        if checked != todo.get("done", False):
+            todo["done"] = checked
+            save_data(data)
+            st.rerun()
+    with c2:
+        if st.button("🗑️", key=f"del_todo_{todo['id']}", help="Remove"):
+            data["todos"] = [t for t in todos if t["id"] != todo["id"]]
+            save_data(data)
+            st.rerun()
+
+with st.form(key="add_todo_form", clear_on_submit=True):
+    c1, c2 = st.columns([5, 1])
+    with c1:
+        new_todo_text = st.text_input("Add a task", label_visibility="collapsed", placeholder="e.g. Buy travel insurance")
+    with c2:
+        submitted = st.form_submit_button("Add", type="primary")
+    if submitted and new_todo_text.strip():
+        todos.append({"id": new_id(), "text": new_todo_text.strip(), "done": False})
+        save_data(data)
+        st.rerun()
 
 st.divider()
 
@@ -142,4 +181,6 @@ else:
 st.divider()
 st.page_link("pages/1_Itinerary.py", label="Go to Itinerary", icon="🗓️")
 st.page_link("pages/2_Budget.py", label="Go to Budget", icon="💰")
-st.page_link("pages/3_Destinations.py", label="Go to Destinations", icon="🌍")
+st.page_link("pages/5_Maastricht.py", label="Go to Maastricht", icon="🌷")
+st.page_link("pages/4_Prague.py", label="Go to Prague", icon="🏰")
+st.page_link("pages/6_Amsterdam.py", label="Go to Amsterdam", icon="🚲")

@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.storage import load_data, save_data, new_id
 from utils.currency import get_rates, convert, TARGET_CURRENCIES
+from utils.city_page import effective_price
 
 st.markdown(
     "<style>.block-container{max-width:1100px;padding-top:1.5rem;} "
@@ -21,7 +22,7 @@ data = load_data()
 base = data.get("base_currency", "EUR")
 
 st.title("💰 Budget")
-st.caption("Track flights, hotels and tickets/activities, and see totals converted across currencies.")
+st.caption("Track flights, hotels, tickets, and things-to-do from each city page — with totals converted across currencies.")
 
 rates, is_live = get_rates(base)
 if not is_live:
@@ -47,6 +48,19 @@ for bucket_key, meta in BUCKETS.items():
                 "Item": item.get("title") or item.get("name") or "(unnamed)",
                 "Cost": item.get("cost") or 0,
                 "Currency": item.get("currency", base),
+            }
+        )
+
+# "Things to do" activities from each city page — uses the actual price paid
+# if one was set, otherwise the planned price (so it's never silently zero).
+for city_name, activities in data.get("city_activities", {}).items():
+    for act in activities:
+        rows.append(
+            {
+                "Category": f"📍 {city_name}",
+                "Item": act.get("title") or "(unnamed)",
+                "Cost": effective_price(act),
+                "Currency": act.get("currency", base),
             }
         )
 

@@ -22,6 +22,8 @@ DEFAULT_DATA = {
     "hotels": [],         # [{id, name, address, link, check_in, check_out, cost, currency, notes}]
     "tickets": [],         # [{id, title, link, cost, currency, date, notes}]
     "destinations": [],    # [{id, country, city, notes, must_see: [str], links: [str]}]
+    "todos": [],            # [{id, text, done}]
+    "city_activities": {},  # {city_key: [{id, title, time, price, currency, link, notes}]}
 }
 
 
