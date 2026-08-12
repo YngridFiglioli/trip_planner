@@ -40,6 +40,15 @@ st.markdown(
 
 data = load_data()
 
+# ---------- Route overview ----------
+st.subheader("🗺️ Route overview")
+
+ROUTE_SEGMENTS = [
+    {"start": dt.date(2026, 10, 24), "end": dt.date(2026, 10, 27), "label": "Maastricht", "color": "#4f7cff"},
+    {"start": dt.date(2026, 10, 27), "end": dt.date(2026, 10, 30), "label": "Prague", "color": "#ff6584"},
+    {"start": dt.date(2026, 10, 30), "end": dt.date(2026, 11, 1), "label": "Amsterdam", "color": "#ffb648"},
+]
+
 # ---------- Exchange rates ----------
 st.markdown(
     """
@@ -51,15 +60,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
-# ---------- Route overview ----------
-st.subheader("🗺️ Route overview")
-
-ROUTE_SEGMENTS = [
-    {"start": dt.date(2026, 10, 24), "end": dt.date(2026, 10, 27), "label": "Maastricht", "color": "#4f7cff"},
-    {"start": dt.date(2026, 10, 27), "end": dt.date(2026, 10, 30), "label": "Prague", "color": "#ff6584"},
-    {"start": dt.date(2026, 10, 30), "end": dt.date(2026, 11, 1), "label": "Amsterdam", "color": "#ffb648"},
-]
 
 render_route_calendar(ROUTE_SEGMENTS, buffer_days=0)
 
