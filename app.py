@@ -4,129 +4,150 @@ import sys
 
 import streamlit as st
 
-# Make sure the project root is importable, regardless of the working
-# directory Streamlit was launched from.
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Make sure the project root (this file's folder) is importable, regardless
+# of the working directory Streamlit was launched from.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from utils.storage import load_data, save_data, new_id
+from utils.storage import load_data, save_data
+from utils.currency import get_rates, convert, TARGET_CURRENCIES
 
-st.set_page_config(page_title="Itinerary", page_icon="🗓️", layout="wide")
+st.set_page_config(
+    page_title="Trip Planner",
+    page_icon="🧳",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# ---------- Mobile-friendly global styling ----------
 st.markdown(
-    "<style>.block-container{max-width:1000px;padding-top:1.5rem;} "
-    "@media (max-width:640px){.block-container{padding-left:.8rem;padding-right:.8rem;}}</style>",
+    """
+    <style>
+        .block-container {
+            padding-top: 1.5rem;
+            padding-bottom: 3rem;
+            max-width: 1000px;
+        }
+        [data-testid="stMetricValue"] { font-size: 1.4rem; }
+        h1, h2, h3 { letter-spacing: -0.02em; }
+        .trip-card {
+            border: 1px solid rgba(128,128,128,0.25);
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            margin-bottom: 0.75rem;
+        }
+        @media (max-width: 640px) {
+            .block-container { padding-left: 0.8rem; padding-right: 0.8rem; }
+            [data-testid="stMetricValue"] { font-size: 1.15rem; }
+        }
+    </style>
+    """,
     unsafe_allow_html=True,
 )
 
 data = load_data()
 
-st.title("🗓️ Itinerary")
-st.caption("Plan your trip day by day: where you'll be, and what you'll do.")
+st.title("🧳 " + (data.get("trip_name") or "My Trip"))
 
-# ---------- Add a new day ----------
-with st.expander("➕ Add a day", expanded=len(data.get("days", [])) == 0):
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        new_date = st.date_input("Date", value=dt.date.today(), key="new_day_date")
-    with c2:
-        new_city = st.text_input("City", key="new_day_city")
-    with c3:
-        new_country = st.text_input("Country", key="new_day_country")
+# ---------- Route overview ----------
+st.subheader("🗺️ Route overview")
 
-    if st.button("Add day", type="primary"):
-        data.setdefault("days", []).append(
-            {
-                "id": new_id(),
-                "date": new_date.isoformat(),
-                "city": new_city,
-                "country": new_country,
-                "activities": [],
-            }
+ROUTE = [
+    ("Oct 24", "Arrival at 14:45 — train to Maastricht (2h30)"),
+    ("Oct 24–27", "Maastricht"),
+    ("Oct 27", "Maastricht Aachen airport → flight to Prague"),
+    ("Oct 27–30", "Prague"),
+    ("Oct 30", "Prague airport → flight to Amsterdam"),
+    ("Oct 30 – Nov 1", "Amsterdam"),
+    ("Nov 1", "Amsterdam airport, 14:30 flight → Mexico City (CDMX)"),
+]
+
+for when, what in ROUTE:
+    st.markdown(
+        f"""<div class="trip-card">
+        <b>{when}</b><br/>
+        <span style="color:gray;">{what}</span>
+        </div>""",
+        unsafe_allow_html=True,
+    )
+
+st.divider()
+
+with st.expander("✏️ Trip settings", expanded=not data.get("trip_name") or data.get("trip_name") == "My Trip"):
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        trip_name = st.text_input("Trip name", value=data.get("trip_name", "My Trip"))
+    with col2:
+        start_date = st.date_input(
+            "Start date",
+            value=dt.date.fromisoformat(data["start_date"]) if data.get("start_date") else dt.date.today(),
         )
+    with col3:
+        end_date = st.date_input(
+            "End date",
+            value=dt.date.fromisoformat(data["end_date"]) if data.get("end_date") else dt.date.today(),
+        )
+    base_currency = st.selectbox(
+        "Your home currency (used as the default reference)",
+        TARGET_CURRENCIES,
+        index=TARGET_CURRENCIES.index(data.get("base_currency", "EUR")),
+    )
+    if st.button("Save settings", type="primary"):
+        data["trip_name"] = trip_name or "My Trip"
+        data["start_date"] = start_date.isoformat()
+        data["end_date"] = end_date.isoformat()
+        data["base_currency"] = base_currency
         save_data(data)
-        st.success("Day added.")
+        st.success("Saved!")
         st.rerun()
 
 st.divider()
 
+# ---------- Quick stats ----------
+num_days = len(data.get("days", []))
+num_destinations = len(data.get("destinations", []))
+base = data.get("base_currency", "EUR")
+rates, is_live = get_rates(base)
+
+total_by_currency = {c: 0.0 for c in TARGET_CURRENCIES}
+for bucket in ("flights", "hotels", "tickets"):
+    for item in data.get(bucket, []):
+        cost = item.get("cost") or 0
+        cur = item.get("currency", base)
+        for target in TARGET_CURRENCIES:
+            total_by_currency[target] += convert(cost, cur, target, rates, base)
+
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Days planned", num_days)
+col2.metric("Destinations", num_destinations)
+col3.metric(f"Total spend ({base})", f"{total_by_currency[base]:,.2f}")
+other = [c for c in TARGET_CURRENCIES if c != base]
+col4.metric(f"≈ {other[0]}", f"{total_by_currency[other[0]]:,.2f}")
+
+if not is_live:
+    st.caption("⚠️ Using offline/fallback exchange rates — live rates unavailable right now.")
+
+st.divider()
+
+# ---------- Upcoming days preview ----------
+st.subheader("📅 Upcoming days")
 days_sorted = sorted(data.get("days", []), key=lambda d: d.get("date", ""))
-
 if not days_sorted:
-    st.info("No days yet — add your first one above.")
-
-for day in days_sorted:
-    loc = ", ".join(filter(None, [day.get("city"), day.get("country")]))
-    header = f"{day.get('date', '')} — {loc or 'No location'}"
-    with st.expander(header, expanded=False):
-        ec1, ec2, ec3, ec4 = st.columns([1.2, 1.5, 1.5, 0.6])
-        with ec1:
-            edit_date = st.date_input(
-                "Date", value=dt.date.fromisoformat(day["date"]), key=f"date_{day['id']}"
-            )
-        with ec2:
-            edit_city = st.text_input("City", value=day.get("city", ""), key=f"city_{day['id']}")
-        with ec3:
-            edit_country = st.text_input(
-                "Country", value=day.get("country", ""), key=f"country_{day['id']}"
-            )
-        with ec4:
-            st.write("")
-            st.write("")
-            if st.button("🗑️", key=f"del_day_{day['id']}", help="Delete this day"):
-                data["days"] = [d for d in data["days"] if d["id"] != day["id"]]
-                save_data(data)
-                st.rerun()
-
-        if (
-            edit_date.isoformat() != day["date"]
-            or edit_city != day.get("city", "")
-            or edit_country != day.get("country", "")
-        ):
-            day["date"] = edit_date.isoformat()
-            day["city"] = edit_city
-            day["country"] = edit_country
-            save_data(data)
-
-        st.markdown("**Activities**")
-        activities = sorted(day.get("activities", []), key=lambda a: a.get("time", ""))
-        for act in activities:
-            ac1, ac2 = st.columns([5, 1])
-            with ac1:
-                time_str = f"`{act['time']}` " if act.get("time") else ""
-                link_str = f" — [link]({act['link']})" if act.get("link") else ""
-                st.markdown(f"{time_str}**{act.get('title', '')}**{link_str}")
-                if act.get("notes"):
-                    st.caption(act["notes"])
-            with ac2:
-                if st.button("Remove", key=f"del_act_{act['id']}"):
-                    day["activities"] = [a for a in day["activities"] if a["id"] != act["id"]]
-                    save_data(data)
-                    st.rerun()
-
-        st.markdown("**Add activity**")
-        a1, a2 = st.columns([1, 2])
-        with a1:
-            act_time = st.time_input(
-                "Time", value=dt.time(9, 0), key=f"new_act_time_{day['id']}"
-            )
-        with a2:
-            act_title = st.text_input("Title (e.g. 'Visit the castle')", key=f"new_act_title_{day['id']}")
-        act_link = st.text_input(
-            "Link (tickets, maps, booking...) — optional", key=f"new_act_link_{day['id']}"
+    st.info("No days planned yet. Go to the **Itinerary** page to add your trip days.")
+else:
+    for day in days_sorted[:5]:
+        loc = ", ".join(filter(None, [day.get("city"), day.get("country")]))
+        n_act = len(day.get("activities", []))
+        st.markdown(
+            f"""<div class="trip-card">
+            <b>{day.get('date', '')}</b> — {loc or 'No location set'}<br/>
+            <span style="color:gray;">{n_act} activit{'y' if n_act == 1 else 'ies'} planned</span>
+            </div>""",
+            unsafe_allow_html=True,
         )
-        act_notes = st.text_area("Notes — optional", key=f"new_act_notes_{day['id']}", height=68)
+    if len(days_sorted) > 5:
+        st.caption(f"+ {len(days_sorted) - 5} more day(s) — see the Itinerary page.")
 
-        if st.button("Add activity", key=f"add_act_{day['id']}"):
-            if act_title.strip():
-                day.setdefault("activities", []).append(
-                    {
-                        "id": new_id(),
-                        "time": act_time.strftime("%H:%M"),
-                        "title": act_title.strip(),
-                        "link": act_link.strip(),
-                        "notes": act_notes.strip(),
-                    }
-                )
-                save_data(data)
-                st.rerun()
-            else:
-                st.warning("Give the activity a title first.")
+st.divider()
+st.page_link("pages/1_Itinerary.py", label="Go to Itinerary", icon="🗓️")
+st.page_link("pages/2_Budget.py", label="Go to Budget", icon="💰")
+st.page_link("pages/3_Destinations.py", label="Go to Destinations", icon="🌍")
