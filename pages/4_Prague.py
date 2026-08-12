@@ -19,11 +19,6 @@ render_info_box(
     currency="Czech Koruna (CZK)",
     address="Rodvinovská 1567/4, Prague 4",
     address_link="https://maps.app.goo.gl/3TtifCHPeJ3EnvBY9",
-    extra_rows=[
-        "💰 <b>Currency Exchange Rate:</b> 1 CZK ≈ 0.83 MXN",
-        "💰 <b>Currency Exchange Rate:</b> 1 EUR ≈ 24.25 CZK",
-        "💰 <b>Currency Exchange Rate:</b> 1 EUR ≈ 19.85 MXN",
-    ],
 )
 
 # ---------- Weather ----------

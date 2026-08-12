@@ -10,7 +10,6 @@ import streamlit as st
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.storage import load_data, save_data, new_id
-from utils.currency import get_rates, convert, TARGET_CURRENCIES
 from utils.route_calendar import render_route_calendar
 
 # ---------- Mobile-friendly global styling ----------
@@ -40,6 +39,18 @@ st.markdown(
 )
 
 data = load_data()
+
+# ---------- Exchange rates ----------
+st.markdown(
+    """
+    <div class="trip-card">
+        <div>💰 <b>Currency Exchange Rate:</b> 1 CZK ≈ 0.83 MXN</div>
+        <div>💰 <b>Currency Exchange Rate:</b> 1 EUR ≈ 24.25 CZK</div>
+        <div>💰 <b>Currency Exchange Rate:</b> 1 EUR ≈ 19.85 MXN</div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 # ---------- Route overview ----------
 st.subheader("🗺️ Route overview")
