@@ -11,7 +11,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.storage import load_data, save_data, new_id
 from utils.currency import get_rates, convert, TARGET_CURRENCIES
 
-st.set_page_config(page_title="Budget", page_icon="💰", layout="wide")
 st.markdown(
     "<style>.block-container{max-width:1100px;padding-top:1.5rem;} "
     "@media (max-width:640px){.block-container{padding-left:.8rem;padding-right:.8rem;}}</style>",
