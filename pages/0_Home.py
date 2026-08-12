@@ -41,8 +41,6 @@ st.markdown(
 
 data = load_data()
 
-st.title("🧳 " + (data.get("trip_name") or "My Trip"))
-
 # ---------- Route overview ----------
 st.subheader("🗺️ Route overview")
 
